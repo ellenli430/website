@@ -1,218 +1,574 @@
-import React, { useState } from 'react';
-import { 
-  LayoutDashboard, Users, Calendar, BookOpen, ClipboardList, 
-  BarChart3, BadgeDollarSign, Image as ImageIcon, MessageSquare,
-  Search, Bell, Plus, ChevronRight, ChevronLeft, CheckCircle2, Clock, 
-  TrendingUp, Star, ArrowRight, UserCircle, Settings, MapPin
-} from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+<!DOCTYPE html>
+<html lang="zh-TW" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduFlow Pro | 補習班智慧管理系統</title>
+    
+    <!-- 核心框架 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#fffdf0', 100: '#fef9c3', 200: '#fef08a', 300: '#fde047', 400: '#facc15', 500: '#eab308', 600: '#ca8a04' },
+                        slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' }
+                    },
+                    fontFamily: { sans: ['Inter', 'Noto Sans TC', 'sans-serif'] },
+                    borderRadius: { '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
 
-// --- Mock Data for Schedule ---
-const MONTHLY_LESSONS = [
-  { id: 1, date: 5, month: 'Oct', title: 'Unit 6: Reading', type: 'English', status: 'completed', time: '14:00' },
-  { id: 2, date: 12, month: 'Oct', title: 'Unit 7: Grammar', type: 'English', status: 'completed', time: '14:00' },
-  { id: 3, date: 19, month: 'Oct', title: 'Creative Writing Intro', type: 'Writing', status: 'completed', time: '18:30' },
-  { id: 4, date: 26, month: 'Oct', title: 'Unit 8: Vocabulary', type: 'English', status: 'upcoming', time: '14:00' },
-  { id: 5, date: 28, month: 'Oct', title: 'Makeup: Phonics', type: 'Special', status: 'upcoming', time: '10:00' },
-];
-
-// --- Sub-component: Parent Monthly Schedule ---
-const ParentScheduleView = () => {
-  const [selectedDate, setSelectedDate] = useState(26);
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-700">
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">October 2023</h2>
-          <p className="text-sm text-slate-500">You have 2 lessons remaining this month.</p>
-        </div>
-        <div className="flex space-x-2">
-          <button className="p-2 hover:bg-white rounded-full border border-slate-200 transition-colors">
-            <ChevronLeft size={18} />
-          </button>
-          <button className="p-2 hover:bg-white rounded-full border border-slate-200 transition-colors">
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Calendar Grid */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-          <div className="grid grid-cols-7 mb-4">
-            {weekDays.map(day => (
-              <div key={day} className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest pb-4">
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {/* Empty slots for calendar alignment (Oct 1st 2023 was Sunday) */}
-            {days.map(day => {
-              const hasLesson = MONTHLY_LESSONS.find(l => l.date === day);
-              const isSelected = selectedDate === day;
-              
-              return (
-                <div 
-                  key={day}
-                  onClick={() => setSelectedDate(day)}
-                  className={`aspect-square relative flex flex-col items-center justify-center cursor-pointer rounded-2xl transition-all duration-200
-                    ${isSelected ? 'bg-slate-900 text-white shadow-lg scale-105 z-10' : 'hover:bg-slate-50 text-slate-700'}
-                  `}
-                >
-                  <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-900'}`}>{day}</span>
-                  {hasLesson && !isSelected && (
-                    <div className={`absolute bottom-3 w-1.5 h-1.5 rounded-full ${hasLesson.type === 'English' ? 'bg-blue-400' : 'bg-amber-400'}`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Selected Date Details */}
-        <div className="space-y-4">
-          <h3 className="font-bold text-slate-800 px-1">Schedule for Oct {selectedDate}</h3>
-          {MONTHLY_LESSONS.filter(l => l.date === selectedDate).length > 0 ? (
-            MONTHLY_LESSONS.filter(l => l.date === selectedDate).map(lesson => (
-              <div key={lesson.id} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm border-l-4 border-l-blue-500 animate-in slide-in-from-right-4">
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    lesson.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
-                  }`}>
-                    {lesson.status}
-                  </span>
-                  <span className="text-sm font-semibold text-slate-400">{lesson.time}</span>
-                </div>
-                <h4 className="font-bold text-slate-900 text-lg mb-1">{lesson.title}</h4>
-                <div className="flex items-center text-sm text-slate-500 space-x-4">
-                  <span className="flex items-center"><UserCircle size={14} className="mr-1"/> Teacher Grace</span>
-                  <span className="flex items-center"><MapPin size={14} className="mr-1"/> Room 302</span>
-                </div>
-                {lesson.status === 'completed' && (
-                  <button className="w-full mt-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
-                    View Lesson Report
-                  </button>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="h-40 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-              <p className="text-slate-400 text-sm">No classes scheduled</p>
-            </div>
-          )}
-
-          {/* Quick Stats Widget */}
-          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl">
-            <p className="text-slate-400 text-xs font-medium mb-1">Attendance Rate</p>
-            <p className="text-2xl font-bold mb-4">98.5%</p>
-            <div className="w-full bg-white/10 h-1.5 rounded-full">
-              <div className="bg-blue-400 h-full w-[98%] rounded-full" />
-            </div>
-            <p className="mt-4 text-[10px] text-slate-400 leading-relaxed">
-              Aaron has only missed one class this year. Keep up the consistent learning!
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Update App Component (Integrating the new view) ---
-
-export default function LearningJourneyApp() {
-  const [role, setRole] = useState<'teacher' | 'parent'>('parent'); // Default to parent for demo
-  const [activeTab, setActiveTab] = useState('Monthly Schedule');
-
-  const teacherNav = [
-    { label: 'Dashboard', icon: LayoutDashboard },
-    { label: 'Students', icon: Users },
-    { label: 'Schedule', icon: Calendar },
-    { label: 'Class Records', icon: BookOpen },
-    { label: 'Homework', icon: ClipboardList },
-    { label: 'Grades', icon: BarChart3 },
-    { label: 'Tuition', icon: BadgeDollarSign },
-  ];
-
-  const parentNav = [
-    { label: 'Dashboard', icon: LayoutDashboard },
-    { label: 'Monthly Schedule', icon: Calendar },
-    { label: 'Learning Progress', icon: TrendingUp },
-    { label: 'Homework', icon: ClipboardList },
-    { label: 'Teacher Feedback', icon: MessageSquare },
-    { label: 'Photos', icon: ImageIcon },
-  ];
-
-  const navItems = role === 'teacher' ? teacherNav : parentNav;
-
-  // Render logic based on Tab
-  const renderContent = () => {
-    if (role === 'parent' && activeTab === 'Monthly Schedule') {
-      return <ParentScheduleView />;
-    }
-    // ... (Keep other dashboard renders as in the previous code)
-    return <div className="text-slate-400 text-center py-20 italic">Module: {activeTab} coming soon...</div>;
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F9FAFB] flex font-sans text-slate-900 selection:bg-blue-100">
-      {/* Sidebar (Keep as is) */}
-      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col hidden lg:flex fixed h-full z-20">
-        <div className="p-8 flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-xl italic">
-            L
-          </div>
-          <span className="font-bold text-lg tracking-tight">Learning Journey</span>
-        </div>
+    <style>
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         
-        <nav className="flex-1 px-4 space-y-1">
-          {navItems.map((item) => (
-            <div 
-              key={item.label}
-              onClick={() => setActiveTab(item.label)}
-              className={`flex items-center space-x-3 px-4 py-2.5 cursor-pointer rounded-lg transition-all duration-200 ${
-                activeTab === item.label ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-              }`}
-            >
-              <item.icon size={18} strokeWidth={activeTab === item.label ? 2.5 : 2} />
-              <span className="text-sm">{item.label}</span>
-            </div>
-          ))}
-        </nav>
+        /* 動畫效果 */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide { animation: slideIn 0.4s ease-out forwards; }
+        
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+        .dark .glass { background: rgba(15, 23, 42, 0.8); }
+        
+        .card-shadow { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); }
+        .nav-active { @apply bg-primary-100 text-primary-700 font-bold shadow-sm; }
+        
+        /* 骨架屏載入動畫 */
+        #loader { transition: opacity 0.5s ease; }
+        .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="bg-[#FBFBFA] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
 
-        <div className="p-4 border-t border-slate-50">
-          <button 
-            onClick={() => {
-                const newRole = role === 'teacher' ? 'parent' : 'teacher';
-                setRole(newRole);
-                setActiveTab('Dashboard');
-            }}
-            className="w-full flex items-center justify-between px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-all"
-          >
-            <span>Switch to {role === 'teacher' ? 'Parent' : 'Teacher'}</span>
-            <ArrowRight size={14} />
-          </button>
+    <!-- Loading 動畫層 -->
+    <div id="loader" class="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div class="w-12 h-12 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
+            <p class="mt-4 text-sm font-medium text-slate-400">系統初始化中...</p>
         </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 min-h-screen">
-        <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 px-8 flex items-center justify-between">
-          <h2 className="font-semibold text-slate-800">{activeTab}</h2>
-          <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold border border-blue-200">AC</div>
-            <span className="text-sm font-medium text-slate-600">Aaron's Parent</span>
-          </div>
-        </header>
-
-        <div className="p-8 max-w-6xl mx-auto">
-          {renderContent()}
-        </div>
-      </main>
     </div>
-  );
-}
+
+    <div class="flex min-h-screen">
+        
+        <!-- Sidebar (Notion 風格固定側欄) -->
+        <aside id="sidebar" class="hidden lg:flex w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 fixed h-full z-50">
+            <div class="p-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-primary-400 rounded-lg flex items-center justify-center">
+                        <i data-lucide="sparkles" class="text-white w-5 h-5"></i>
+                    </div>
+                    <span class="text-lg font-black tracking-tight">EduFlow Pro</span>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-3 space-y-1">
+                <div class="mb-4">
+                    <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">主要視圖</p>
+                    <button onclick="switchTab('parent')" id="btn-parent" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-primary-600 bg-primary-50">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 家長儀表板
+                    </button>
+                    <button onclick="switchTab('teacher')" id="btn-teacher" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> 教師管理系統
+                    </button>
+                </div>
+
+                <div>
+                    <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">學務管理</p>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> 出缺席紀錄
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                        <i data-lucide="image" class="w-4 h-4"></i> 課堂照片牆
+                    </a>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-slate-50 dark:border-slate-800">
+                <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-8 h-8 rounded-full">
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold truncate">林小明 家長</p>
+                        <p class="text-[10px] text-slate-400">Premium Account</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主內容區塊 -->
+        <main class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+            
+            <!-- Navbar -->
+            <header class="h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-6 flex items-center justify-between sticky top-0 z-40">
+                <h2 id="page-title" class="text-sm font-bold text-slate-500 uppercase tracking-widest">家長儀表板</h2>
+                
+                <div class="flex items-center gap-4">
+                    <!-- 搜尋 -->
+                    <div class="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+                        <input type="text" placeholder="搜尋..." class="bg-transparent border-none text-xs focus:outline-none w-32">
+                    </div>
+
+                    <!-- 深色模式切換 -->
+                    <button onclick="toggleDarkMode()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+                        <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+                    </button>
+
+                    <!-- 通知 -->
+                    <button class="relative p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                        <span class="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+            </header>
+
+            <div id="content-area" class="p-6 md:p-10 space-y-10 max-w-7xl mx-auto w-full">
+                
+                <!-- 1. 家長介面 (Parent View) -->
+                <div id="view-parent" class="animate-slide space-y-10">
+                    
+                    <!-- 學生基本資料 & 快速統計 -->
+                    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-4 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 card-shadow flex flex-col items-center text-center">
+                            <div class="relative mb-6">
+                                <img id="p-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jerry" class="w-28 h-28 rounded-3xl bg-primary-50">
+                                <div class="absolute -bottom-2 -right-2 bg-green-500 text-white p-1.5 rounded-full border-4 border-white dark:border-slate-900">
+                                    <i data-lucide="check" class="w-3 h-3"></i>
+                                </div>
+                            </div>
+                            <h3 id="p-name" class="text-2xl font-black">林小明</h3>
+                            <p id="p-class" class="text-sm text-slate-400 font-medium">九年級 • 精英英文 A 班</p>
+                            
+                            <div class="w-full grid grid-cols-2 gap-3 mt-8">
+                                <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">下次上課</p>
+                                    <p id="p-next-class" class="text-sm font-bold">週三 18:30</p>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">任課老師</p>
+                                    <p id="p-teacher" class="text-sm font-bold">王雅婷</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 成績分析圖表 -->
+                        <div class="lg:col-span-8 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 card-shadow">
+                            <div class="flex justify-between items-center mb-8">
+                                <h3 class="font-bold flex items-center gap-2"><i data-lucide="bar-chart" class="w-5 h-5 text-primary-500"></i> 成績分析趨勢</h3>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase">平均分數</p>
+                                    <p id="p-avg-score" class="text-2xl font-black text-primary-500">86.4</p>
+                                </div>
+                            </div>
+                            <div class="h-48">
+                                <canvas id="mainChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 教師回饋 & 課程進度 -->
+                    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 card-shadow">
+                            <h3 class="font-bold mb-6 flex items-center gap-2"><i data-lucide="message-circle" class="w-5 h-5 text-primary-500"></i> 本週教師回饋</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div class="p-5 bg-primary-50 dark:bg-primary-900/10 rounded-2xl border border-primary-100/50">
+                                        <p class="text-[10px] font-black text-primary-600 uppercase mb-2">本週表現 / 優點</p>
+                                        <p id="p-pros" class="text-sm leading-relaxed">課堂參與度極高，對於關係代名詞的掌握非常迅速。</p>
+                                    </div>
+                                    <div class="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">待加強項目</p>
+                                        <p id="p-cons" class="text-sm leading-relaxed">寫作練習時仍會遺漏複數 S，需多注意細節。</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col justify-between p-5 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">家庭建議</p>
+                                        <p id="p-advice" class="text-sm italic text-slate-600 dark:text-slate-400">「建議週末可以陪孩子練習複數名詞的口頭造句。」</p>
+                                    </div>
+                                    <div class="mt-6 flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center text-white text-xs font-bold">雅</div>
+                                        <p class="text-xs font-bold">王雅婷 老師</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 課程進度 -->
+                        <div class="bg-slate-900 dark:bg-primary-400 p-8 rounded-[3rem] text-white dark:text-slate-900 shadow-xl shadow-primary-500/10">
+                            <h3 class="font-bold mb-6 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 opacity-70"></i> 課程進度</h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-2">
+                                        <span>Oxford Discover 3</span>
+                                        <span>75%</span>
+                                    </div>
+                                    <div class="h-2 bg-white/20 dark:bg-black/10 rounded-full overflow-hidden">
+                                        <div class="h-full bg-white dark:bg-slate-900 w-3/4 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3 text-sm font-medium">
+                                    <div class="flex items-center gap-3 opacity-60 line-through"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i> Unit 1: The Earth</div>
+                                    <div class="flex items-center gap-3"><i data-lucide="play-circle" class="w-4 h-4 text-primary-400 dark:text-slate-800"></i> Unit 2: Our Society</div>
+                                    <div class="flex items-center gap-3 opacity-40"><i data-lucide="circle" class="w-4 h-4"></i> Unit 3: Technology</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 下方：照片牆、公告、作業 -->
+                    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- 照片牆 -->
+                        <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 card-shadow">
+                            <h3 class="font-bold mb-6 flex items-center justify-between">
+                                <span class="flex items-center gap-2"><i data-lucide="camera" class="w-5 h-5 text-primary-500"></i> 課堂照片牆</span>
+                                <button class="text-xs font-bold text-primary-500">查看更多</button>
+                            </h3>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="aspect-square rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all"><img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400" class="w-full h-full object-cover"></div>
+                                <div class="aspect-square rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all"><img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=400" class="w-full h-full object-cover"></div>
+                                <div class="aspect-square rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all group relative">
+                                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=400" class="w-full h-full object-cover opacity-50">
+                                    <div class="absolute inset-0 flex items-center justify-center font-black text-slate-800">+12</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 作業與公告 -->
+                        <div class="lg:col-span-5 space-y-8">
+                            <div class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">待辦作業</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
+                                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                        <span class="text-xs font-bold">單字複習 P.25 (明天截止)</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                        <div class="w-2 h-2 bg-slate-300 rounded-full"></div>
+                                        <span class="text-xs font-medium">閱讀測驗第二回 (週五截止)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">最新公告</h4>
+                                <div class="space-y-4">
+                                    <div class="flex gap-3">
+                                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0"><i data-lucide="megaphone" class="w-4 h-4"></i></div>
+                                        <div>
+                                            <p class="text-xs font-bold">端午連假補習班公休通知</p>
+                                            <p class="text-[10px] text-slate-400">2024.06.12</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 2. 教師管理介面 (Admin View) -->
+                <div id="view-teacher" class="hidden animate-slide space-y-10">
+                    <header class="flex justify-between items-end">
+                        <div>
+                            <h3 class="text-3xl font-black mb-2">學生名冊管理</h3>
+                            <p class="text-slate-400">您可以即時修改學生成績，資料將同步至家長手機。</p>
+                        </div>
+                        <button onclick="alert('新增學生功能開發中')" class="bg-primary-500 text-slate-900 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary-500/20">
+                            <i data-lucide="plus" class="w-5 h-5"></i> 新增學生
+                        </button>
+                    </header>
+
+                    <!-- 搜尋與篩選 -->
+                    <div class="flex flex-wrap gap-4 items-center bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+                        <div class="flex-1 min-w-[200px] relative">
+                            <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+                            <input type="text" id="adminSearch" onkeyup="searchStudents()" placeholder="搜尋學生姓名..." class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 ring-primary-500 outline-none">
+                        </div>
+                        <select class="bg-slate-50 dark:bg-slate-800 border-none px-4 py-3 rounded-xl text-sm outline-none">
+                            <option>所有年級</option>
+                            <option>九年級</option>
+                            <option>八年級</option>
+                        </select>
+                        <select class="bg-slate-50 dark:bg-slate-800 border-none px-4 py-3 rounded-xl text-sm outline-none">
+                            <option>精英英文 A 班</option>
+                            <option>基礎英文 B 班</option>
+                        </select>
+                    </div>
+
+                    <!-- 學生清單表格 -->
+                    <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 card-shadow overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/50 dark:bg-slate-800/50">
+                                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <th class="px-8 py-5">學生姓名</th>
+                                    <th class="px-8 py-5">年級班級</th>
+                                    <th class="px-8 py-5">最近成績</th>
+                                    <th class="px-8 py-5">回饋狀態</th>
+                                    <th class="px-8 py-5 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody" class="divide-y divide-slate-50 dark:divide-slate-800">
+                                <!-- JS 動態渲染 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 編輯 Modal -->
+    <div id="editModal" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden animate-slide">
+            <div class="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-black">更新學習狀態</h3>
+                <button onclick="closeModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">本次測驗分數</label>
+                        <input type="number" id="editScore" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">更新大頭貼 (Seed)</label>
+                        <input type="text" id="editAvatar" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">優點回饋</label>
+                    <textarea id="editPros" rows="2" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary-500"></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">家庭建議</label>
+                    <textarea id="editAdvice" rows="2" class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 ring-primary-500"></textarea>
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button onclick="saveData()" class="flex-1 bg-slate-900 dark:bg-primary-500 text-white dark:text-slate-900 py-4 rounded-2xl font-black shadow-lg">儲存並即時發布</button>
+                    <button onclick="closeModal()" class="px-8 bg-slate-100 dark:bg-slate-800 py-4 rounded-2xl font-bold">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 核心資料狀態 (State) ---
+        let students = [
+            { 
+                id: 1, 
+                name: "林小明", 
+                grade: "九年級", 
+                class: "精英英文 A 班", 
+                teacher: "王雅婷", 
+                scores: [78, 85, 82, 90, 88], 
+                pros: "課堂參與度極高，對於關係代名詞的掌握非常迅速。", 
+                cons: "寫作練習時仍會遺漏複數 S，需多注意細節。",
+                advice: "建議週末可以陪孩子練習複數名詞的口頭造句。",
+                nextClass: "週三 18:30",
+                avatarSeed: "Jerry",
+                feedbackUpdated: "已更新"
+            },
+            { 
+                id: 2, 
+                name: "陳大華", 
+                grade: "八年級", 
+                class: "基礎英文 B 班", 
+                teacher: "李志成", 
+                scores: [60, 65, 72, 68, 75], 
+                pros: "背單字的效率有提升，看得出回家有練習。", 
+                cons: "聽力測驗時容易分心。",
+                advice: "每天建議聽 10 分鐘英文廣播。",
+                nextClass: "週四 17:00",
+                avatarSeed: "Felix",
+                feedbackUpdated: "待更新"
+            }
+        ];
+
+        let currentTab = 'parent';
+        let mainChart = null;
+
+        // --- 初始化 ---
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+            initChart();
+            renderAdminTable();
+            
+            // 模擬載入動畫
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 800);
+        });
+
+        // --- 視圖切換 ---
+        function switchTab(tab) {
+            currentTab = tab;
+            const parentView = document.getElementById('view-parent');
+            const teacherView = document.getElementById('view-teacher');
+            const btnParent = document.getElementById('btn-parent');
+            const btnTeacher = document.getElementById('btn-teacher');
+            const title = document.getElementById('page-title');
+
+            if (tab === 'parent') {
+                parentView.classList.remove('hidden');
+                teacherView.classList.add('hidden');
+                btnParent.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-primary-600 bg-primary-50";
+                btnTeacher.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800";
+                title.innerText = "家長儀表板";
+                updateParentView();
+            } else {
+                parentView.classList.add('hidden');
+                teacherView.classList.remove('hidden');
+                btnTeacher.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-primary-600 bg-primary-50";
+                btnParent.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800";
+                title.innerText = "教師管理系統";
+                renderAdminTable();
+            }
+        }
+
+        // --- 家長介面更新 ---
+        function updateParentView() {
+            const s = students[0]; // 預設顯示第一位學生
+            document.getElementById('p-name').innerText = s.name;
+            document.getElementById('p-class').innerText = `${s.grade} • ${s.class}`;
+            document.getElementById('p-teacher').innerText = s.teacher;
+            document.getElementById('p-next-class').innerText = s.nextClass;
+            document.getElementById('p-pros').innerText = s.pros;
+            document.getElementById('p-cons').innerText = s.cons;
+            document.getElementById('p-advice').innerText = s.advice;
+            document.getElementById('p-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.avatarSeed}`;
+            
+            const avg = (s.scores.reduce((a,b) => a+b, 0) / s.scores.length).toFixed(1);
+            document.getElementById('p-avg-score').innerText = avg;
+
+            if (mainChart) {
+                mainChart.data.datasets[0].data = s.scores;
+                mainChart.update();
+            }
+        }
+
+        // --- 教師介面渲染 ---
+        function renderAdminTable(data = students) {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = data.map(s => `
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all group">
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-3">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${s.avatarSeed}" class="w-8 h-8 rounded-full bg-slate-100">
+                            <span class="font-bold text-slate-700 dark:text-white">${s.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 text-sm text-slate-500">${s.class}</td>
+                    <td class="px-8 py-5 font-black text-primary-600">${s.scores[s.scores.length-1]} <span class="text-[10px] text-slate-300 font-normal">分</span></td>
+                    <td class="px-8 py-5">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold ${s.feedbackUpdated === '已更新' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}">${s.feedbackUpdated}</span>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        <button onclick="openEditModal(${s.id})" class="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all text-slate-400 hover:text-primary-500 shadow-sm border border-transparent hover:border-slate-100">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- 搜尋功能 ---
+        function searchStudents() {
+            const term = document.getElementById('adminSearch').value.toLowerCase();
+            const filtered = students.filter(s => s.name.toLowerCase().includes(term));
+            renderAdminTable(filtered);
+        }
+
+        // --- Modal 操作 ---
+        let editingId = null;
+        function openEditModal(id) {
+            editingId = id;
+            const s = students.find(x => x.id === id);
+            document.getElementById('editScore').value = s.scores[s.scores.length-1];
+            document.getElementById('editPros').value = s.pros;
+            document.getElementById('editAdvice').value = s.advice;
+            document.getElementById('editAvatar').value = s.avatarSeed;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveData() {
+            const s = students.find(x => x.id === editingId);
+            s.scores[s.scores.length-1] = parseInt(document.getElementById('editScore').value);
+            s.pros = document.getElementById('editPros').value;
+            s.advice = document.getElementById('editAdvice').value;
+            s.avatarSeed = document.getElementById('editAvatar').value;
+            s.feedbackUpdated = "已更新";
+
+            closeModal();
+            renderAdminTable();
+            // 如果修改的是林小明，家長視圖也會更新
+            if(editingId === 1) updateParentView();
+            
+            // 模仿 SaaS 成功通知
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl z-[200] animate-slide font-bold text-sm flex items-center gap-2";
+            toast.innerHTML = `<i data-lucide='check-circle' class='w-4 h-4 text-green-400'></i> 資料已同步更新至雲端與家長端`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // --- 圖表初始化 ---
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(234, 179, 8, 0.2)');
+            gradient.addColorStop(1, 'rgba(234, 179, 8, 0)');
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['第一次', '第二次', '第三次', '第四次', '本次'],
+                    datasets: [{
+                        label: '得分',
+                        data: students[0].scores,
+                        borderColor: '#eab308',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: gradient
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 40, max: 100, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // --- 深色模式切換 ---
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+    </script>
+</body>
+</html>
