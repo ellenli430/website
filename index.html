@@ -1,514 +1,218 @@
-<!DOCTYPE html><html lang="zh-TW" class=""><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Bio Card • Ya-Lun Li (李亞倫)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            serif: ['Literata', 'serif'],
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            friendly: ['Fredoka', 'sans-serif'],
-          },
-          colors: {
-            paper: {
-              50: '#faf7f2',
-              100: '#f5eee3',
-              200: '#ede2d1',
-              300: '#dfcfb9',
-              800: '#1e1b18',
-              900: '#141210',
-            },
-            terracotta: {
-              light: '#fbf0ec',
-              DEFAULT: '#c86d51',
-              dark: '#a85036',
-            },
-            sage: {
-              light: '#f0f4ef',
-              DEFAULT: '#7a9a7b',
-              dark: '#587459',
-            },
-            ochre: {
-              light: '#fbf4ea',
-              DEFAULT: '#cfa068',
-            },
-            espresso: {
-              DEFAULT: '#2b2724',
-              muted: '#635c55',
-              soft: '#8f867e',
-              darktext: '#e6e1da',
-              darkmuted: '#b3aca3'
-            }
-          },
-          boxShadow: {
-            cozy: '0 12px 36px -8px rgba(138, 117, 98, 0.12), 0 4px 16px -4px rgba(138, 117, 98, 0.08)',
-            scrapbook: '0 8px 24px -4px rgba(180, 150, 130, 0.18)',
-            badge: '0 2px 8px -2px rgba(140, 110, 90, 0.12)',
-          }
-        }
-      }
-    }
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&amp;family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <style>
-    /* Paper texture overlay */
-    .bg-paper-pattern {
-      background-color: #faf7f2;
-      background-image: 
-        radial-gradient(#e5dbcc 0.85px, transparent 0.85px),
-        radial-gradient(#e5dbcc 0.85px, #faf7f2 0.85px);
-      background-size: 28px 28px;
-      background-position: 0 0, 14px 14px;
-    }
+import React, { useState } from 'react';
+import { 
+  LayoutDashboard, Users, Calendar, BookOpen, ClipboardList, 
+  BarChart3, BadgeDollarSign, Image as ImageIcon, MessageSquare,
+  Search, Bell, Plus, ChevronRight, ChevronLeft, CheckCircle2, Clock, 
+  TrendingUp, Star, ArrowRight, UserCircle, Settings, MapPin
+} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-    .dark .bg-paper-pattern {
-      background-color: #141210;
-      background-image: 
-        radial-gradient(#2a2622 0.85px, transparent 0.85px),
-        radial-gradient(#2a2622 0.85px, #141210 0.85px);
-    }
-    
-    .tape-accent {
-      position: absolute;
-      width: 86px;
-      height: 24px;
-      background: rgba(237, 226, 209, 0.72);
-      backdrop-filter: blur(2px);
-      border-left: 2px dashed rgba(200, 185, 165, 0.6);
-      border-right: 2px dashed rgba(200, 185, 165, 0.6);
-      transform: rotate(-3deg);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
+// --- Mock Data for Schedule ---
+const MONTHLY_LESSONS = [
+  { id: 1, date: 5, month: 'Oct', title: 'Unit 6: Reading', type: 'English', status: 'completed', time: '14:00' },
+  { id: 2, date: 12, month: 'Oct', title: 'Unit 7: Grammar', type: 'English', status: 'completed', time: '14:00' },
+  { id: 3, date: 19, month: 'Oct', title: 'Creative Writing Intro', type: 'Writing', status: 'completed', time: '18:30' },
+  { id: 4, date: 26, month: 'Oct', title: 'Unit 8: Vocabulary', type: 'English', status: 'upcoming', time: '14:00' },
+  { id: 5, date: 28, month: 'Oct', title: 'Makeup: Phonics', type: 'Special', status: 'upcoming', time: '10:00' },
+];
 
-    .dark .tape-accent {
-      background: rgba(60, 52, 45, 0.72);
-      border-left-color: rgba(100, 85, 70, 0.6);
-      border-right-color: rgba(100, 85, 70, 0.6);
-    }
+// --- Sub-component: Parent Monthly Schedule ---
+const ParentScheduleView = () => {
+  const [selectedDate, setSelectedDate] = useState(26);
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    .dashed-grid-divider {
-      background-image: linear-gradient(to right, #dfcfb9 55%, rgba(255,255,255,0) 0%);
-      background-position: bottom;
-      background-size: 14px 2px;
-      background-repeat: repeat-x;
-    }
-
-    .dark .dashed-grid-divider {
-      background-image: linear-gradient(to right, #3d352e 55%, rgba(0,0,0,0) 0%);
-    }
-
-    /* Subtle hover transitions */
-    .stamp-hover {
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .stamp-hover:hover {
-      transform: translateY(-2px) rotate(0.8deg);
-    }
-    .stamp-hover-rev {
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .stamp-hover-rev:hover {
-      transform: translateY(-2px) rotate(-0.8deg);
-    }
-  </style>
-</head>
-<body class="bg-paper-pattern min-h-screen text-espresso dark:text-espresso-darktext font-sans flex items-center justify-center p-4 sm:p-8 selection:bg-terracotta selection:text-white transition-colors duration-300">
-
-  <!-- Main Card Outer Container -->
-  <main class="relative w-full max-w-4xl bg-[#fffdfa] dark:bg-[#1e1b18] border-2 border-[#ede3d5] dark:border-[#2e2822] rounded-3xl p-6 sm:p-10 shadow-cozy overflow-hidden transition-colors duration-300">
-    
-    <!-- Decorative Washi Tape & Stamp Accents -->
-    <div class="tape-accent -top-3 left-14 z-20"></div>
-    <div class="tape-accent -top-3 right-20 rotate-2 z-20 bg-ochre-light/80 dark:bg-ochre/20"></div>
-    <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-terracotta-light/40 dark:bg-terracotta-dark/20 rounded-full blur-2xl pointer-events-none"></div>
-    <div class="absolute -left-10 top-1/3 w-32 h-32 bg-sage-light/60 dark:bg-sage-dark/20 rounded-full blur-xl pointer-events-none"></div>
-
-    <!-- Header / Top Control Bar (Theme & Language Toggle) -->
-    <div class="flex items-center justify-between pb-6 mb-6 border-b border-[#f1e8dc] dark:border-[#2a241e]">
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium font-friendly bg-ochre-light dark:bg-paper-800 text-ochre dark:text-ochre border border-[#ebd8c1] dark:border-[#3d3328] tracking-wide">
-          🏷️ Digital Index Card № 2025
-        </span>
-        <span id="headerSubtitle" class="text-xs font-serif italic text-espresso-soft dark:text-espresso-darkmuted hidden sm:inline-block">
-          中山大學教育研究所 • 畢業生檔案
-        </span>
-      </div>
-
-      <!-- Controls: Language Toggle + Dark Mode Switch -->
-      <div class="flex items-center gap-2">
-        <!-- Language Switcher Button -->
-        <button type="button" onclick="toggleLanguage()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-friendly font-semibold bg-paper-100 dark:bg-paper-800 text-espresso dark:text-espresso-darktext border border-paper-200 dark:border-[#38312a] hover:border-terracotta transition-all cursor-pointer shadow-badge">
-          <span>🌐</span>
-          <span id="langBtnText">EN</span>
-        </button>
-
-        <!-- Theme Switcher Button -->
-        <button type="button" onclick="toggleTheme()" class="flex items-center justify-center w-8 h-8 rounded-full bg-paper-100 dark:bg-paper-800 text-espresso dark:text-espresso-darktext border border-paper-200 dark:border-[#38312a] hover:border-terracotta transition-all cursor-pointer shadow-badge" title="Toggle Light/Dark Theme">
-          <span id="themeIcon">🌙</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 2-Column Content Layout -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-      
-      <!-- Left Column: Portrait & Quick Stats/Contact -->
-      <aside class="md:col-span-4 flex flex-col items-center md:items-start space-y-5">
-        
-        <!-- Portrait Container -->
-        <div class="relative group w-full max-w-[260px] mx-auto md:mx-0">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center">
-            <span class="w-6 h-6 rounded-full bg-terracotta border-2 border-white dark:border-paper-800 shadow-sm flex items-center justify-center text-[10px] text-white font-bold">📍</span>
-          </div>
-
-          <div class="relative p-2.5 bg-white dark:bg-paper-800 border border-[#ebd8c1] dark:border-[#38312a] rounded-2xl shadow-scrapbook rotate-[-1deg] transition-transform duration-300 group-hover:rotate-0">
-            <div class="aspect-square w-full overflow-hidden rounded-xl bg-paper-100 dark:bg-paper-900">
-              <img src="./pic.jpg" alt="Ya-Lun Li (李亞倫)" class="w-full h-full object-cover object-center filter saturate-[1.04] contrast-[1.02]">
-            </div>
-            
-            <div class="mt-2.5 text-center">
-              <p id="portraitCaption" class="font-serif italic text-xs text-espresso-muted dark:text-espresso-darkmuted">
-                "學習、教學與研究"
-              </p>
-            </div>
-          </div>
+  return (
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">October 2023</h2>
+          <p className="text-sm text-slate-500">You have 2 lessons remaining this month.</p>
         </div>
-
-        <!-- Status Pill -->
-        <div class="w-full">
-          <div class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-paper-100 dark:bg-paper-800 border border-paper-200 dark:border-[#38312a] text-espresso dark:text-espresso-darktext text-xs font-medium shadow-badge stamp-hover">
-            <span class="text-base">🎓</span>
-            <span id="statusPillText" class="leading-snug font-serif">中山大學教育研究所碩士生</span>
-          </div>
-        </div>
-
-        <!-- Location & Contact Info Block -->
-        <div class="w-full space-y-2.5 pt-1 text-xs text-espresso-muted dark:text-espresso-darkmuted">
-          <!-- Location -->
-          <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/70 dark:bg-paper-800/80 border border-[#f0e6d8] dark:border-[#38312a]">
-            <span class="text-sm">📍</span>
-            <span id="locationText">國立中山大學 (NSYSU)</span>
-          </div>
-
-          <!-- Interactive Copy Email Button -->
-          <button type="button" id="copyEmailBtn" onclick="copyEmail()" class="w-full group flex items-center justify-between px-3 py-2.5 rounded-lg bg-terracotta-light dark:bg-terracotta-dark/20 text-terracotta-dark dark:text-terracotta-light border border-[#f2ded4] dark:border-terracotta-dark/30 hover:bg-terracotta hover:text-white transition-all duration-200 cursor-pointer shadow-sm text-left" title="Click to copy email">
-            <div class="flex items-center gap-2 overflow-hidden">
-              <span class="text-sm">✉️</span>
-              <span id="emailText" class="font-mono text-[11px] truncate select-all">ellen43030@gmail.com</span>
-            </div>
-            <span id="copyIndicator" class="text-[10px] font-friendly uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-white/70 dark:bg-paper-800 text-terracotta group-hover:bg-terracotta-dark group-hover:text-white transition-colors">
-              Copy
-            </span>
+        <div className="flex space-x-2">
+          <button className="p-2 hover:bg-white rounded-full border border-slate-200 transition-colors">
+            <ChevronLeft size={18} />
+          </button>
+          <button className="p-2 hover:bg-white rounded-full border border-slate-200 transition-colors">
+            <ChevronRight size={18} />
           </button>
         </div>
+      </div>
 
-      </aside>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Calendar Grid */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+          <div className="grid grid-cols-7 mb-4">
+            {weekDays.map(day => (
+              <div key={day} className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest pb-4">
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {/* Empty slots for calendar alignment (Oct 1st 2023 was Sunday) */}
+            {days.map(day => {
+              const hasLesson = MONTHLY_LESSONS.find(l => l.date === day);
+              const isSelected = selectedDate === day;
+              
+              return (
+                <div 
+                  key={day}
+                  onClick={() => setSelectedDate(day)}
+                  className={`aspect-square relative flex flex-col items-center justify-center cursor-pointer rounded-2xl transition-all duration-200
+                    ${isSelected ? 'bg-slate-900 text-white shadow-lg scale-105 z-10' : 'hover:bg-slate-50 text-slate-700'}
+                  `}
+                >
+                  <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-900'}`}>{day}</span>
+                  {hasLesson && !isSelected && (
+                    <div className={`absolute bottom-3 w-1.5 h-1.5 rounded-full ${hasLesson.type === 'English' ? 'bg-blue-400' : 'bg-amber-400'}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-      <!-- Right Column: Student Bio, Quote, Tags, & Socials -->
-      <section class="md:col-span-8 space-y-5">
-        
-        <!-- Header Row: Name & Major -->
-        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 id="userName" class="text-2xl sm:text-3xl font-friendly font-semibold text-espresso dark:text-espresso-darktext tracking-tight">
-                李亞倫 <span class="text-lg font-normal text-espresso-soft dark:text-espresso-darkmuted sm:ml-1">(Ya-Lun Li)</span>
-              </h1>
-              <span class="text-2xl inline-block hover:scale-125 transition-transform origin-bottom-left cursor-default">✨</span>
+        {/* Selected Date Details */}
+        <div className="space-y-4">
+          <h3 className="font-bold text-slate-800 px-1">Schedule for Oct {selectedDate}</h3>
+          {MONTHLY_LESSONS.filter(l => l.date === selectedDate).length > 0 ? (
+            MONTHLY_LESSONS.filter(l => l.date === selectedDate).map(lesson => (
+              <div key={lesson.id} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm border-l-4 border-l-blue-500 animate-in slide-in-from-right-4">
+                <div className="flex justify-between items-start mb-4">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    lesson.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                  }`}>
+                    {lesson.status}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-400">{lesson.time}</span>
+                </div>
+                <h4 className="font-bold text-slate-900 text-lg mb-1">{lesson.title}</h4>
+                <div className="flex items-center text-sm text-slate-500 space-x-4">
+                  <span className="flex items-center"><UserCircle size={14} className="mr-1"/> Teacher Grace</span>
+                  <span className="flex items-center"><MapPin size={14} className="mr-1"/> Room 302</span>
+                </div>
+                {lesson.status === 'completed' && (
+                  <button className="w-full mt-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
+                    View Lesson Report
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="h-40 flex flex-col items-center justify-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+              <p className="text-slate-400 text-sm">No classes scheduled</p>
             </div>
-            <p id="userTitle" class="text-sm sm:text-base font-serif italic text-terracotta mt-0.5">
-              中山大學教育研究所碩士生 • Institute of Education, NSYSU
+          )}
+
+          {/* Quick Stats Widget */}
+          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl">
+            <p className="text-slate-400 text-xs font-medium mb-1">Attendance Rate</p>
+            <p className="text-2xl font-bold mb-4">98.5%</p>
+            <div className="w-full bg-white/10 h-1.5 rounded-full">
+              <div className="bg-blue-400 h-full w-[98%] rounded-full" />
+            </div>
+            <p className="mt-4 text-[10px] text-slate-400 leading-relaxed">
+              Aaron has only missed one class this year. Keep up the consistent learning!
             </p>
           </div>
         </div>
-
-        <!-- Bio Paragraph -->
-        <div class="relative bg-white/60 dark:bg-paper-800/60 p-4 rounded-xl border border-[#f1e6d7] dark:border-[#38312a] text-sm leading-relaxed text-espresso-muted dark:text-espresso-darkmuted">
-          <p id="userBio">
-            我是國立中山大學教育研究所的碩士生，具備英語教學、課程設計與學生輔導背景。我對學習科學、教育科技以及 AI 如何促進深層學習充滿興趣。希望結合教學與研究，串連理論與實務，打造更具互動性與成效的學習體驗。
-          </p>
-        </div>
-
-        <!-- Quote Callout -->
-        <div class="relative bg-paper-100/90 dark:bg-paper-800/90 rounded-2xl p-4 sm:p-5 border-l-4 border-terracotta border-t border-r border-b border-paper-200 dark:border-[#38312a] shadow-sm">
-          <div class="flex items-start gap-3">
-            <span class="text-2xl text-terracotta font-serif leading-none mt-1 select-none">“</span>
-            <div>
-              <p id="quoteText" class="font-serif italic text-sm text-espresso dark:text-espresso-darktext font-medium leading-normal">
-                Keep learning, keep growing, and keep asking why.
-              </p>
-              <div class="mt-2 flex items-center gap-2 text-xs text-espresso-soft dark:text-espresso-darkmuted font-friendly">
-                <span id="quoteAuthor">— 個人座右銘與學習哲學</span>
-                <span>•</span>
-                <span id="quoteTopic" class="text-sage font-medium">🌿 教育科技與學習研究</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tags -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <span id="tagsHeader" class="text-xs font-friendly font-medium text-espresso-soft dark:text-espresso-darkmuted uppercase tracking-wider">
-              ✦ 核心領域與研究專長
-            </span>
-          </div>
-          
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-[#fcf5ec] dark:bg-paper-800 text-[#a0623a] dark:text-ochre border border-[#f0dfcc] dark:border-[#38312a] shadow-sm hover:border-terracotta cursor-pointer transition-colors stamp-hover">
-              #LearningSciences
-            </span>
-            <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-[#f1f6f1] dark:bg-paper-800 text-sage-dark dark:text-sage border border-[#d6e5d6] dark:border-[#38312a] shadow-sm hover:border-sage cursor-pointer transition-colors stamp-hover-rev">
-              #EducationalTechnology
-            </span>
-            <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-[#f8f3eb] dark:bg-paper-800 text-espresso dark:text-espresso-darktext border border-[#e8dbcc] dark:border-[#38312a] shadow-sm hover:border-ochre cursor-pointer transition-colors stamp-hover">
-              #AIinEducation
-            </span>
-            <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-[#fadfd2] dark:bg-paper-800 text-terracotta border border-[#fadfd2] dark:border-[#38312a] shadow-sm hover:border-terracotta cursor-pointer transition-colors stamp-hover-rev">
-              #CurriculumDesign
-            </span>
-            <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-[#f3f5f8] dark:bg-paper-800 text-[#55697d] dark:text-espresso-darkmuted border border-[#dce2e8] dark:border-[#38312a] shadow-sm hover:border-[#55697d] cursor-pointer transition-colors stamp-hover">
-              #LifelongLearning
-            </span>
-          </div>
-        </div>
-
-        <!-- Social Link Buttons -->
-        <div class="pt-2">
-          <span id="socialHeader" class="block text-xs font-friendly font-medium text-espresso-soft dark:text-espresso-darkmuted uppercase tracking-wider mb-2">
-            ✦ 社群與聯絡管道
-          </span>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <!-- Email -->
-            <a href="mailto:ellen43030@gmail.com" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white dark:bg-paper-800 border border-[#ebdccb] dark:border-[#38312a] text-xs font-medium text-espresso dark:text-espresso-darktext hover:border-terracotta hover:bg-terracotta-light dark:hover:bg-terracotta-dark/20 hover:text-terracotta transition-all shadow-sm">
-              <span class="text-sm">✉️</span>
-              <span id="socialEmailText">Email 聯絡</span>
-            </a>
-            <!-- Instagram -->
-            <a href="https://instagram.com/yalunlee430" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white dark:bg-paper-800 border border-[#ebdccb] dark:border-[#38312a] text-xs font-medium text-espresso dark:text-espresso-darktext hover:border-terracotta hover:bg-terracotta-light dark:hover:bg-terracotta-dark/20 hover:text-terracotta transition-all shadow-sm">
-              <span class="text-sm">📸</span>
-              <span>Instagram</span>
-            </a>
-            <!-- LINE Link -->
-            <a href="https://lin.ee/qMMZRuo" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white dark:bg-paper-800 border border-[#ebdccb] dark:border-[#38312a] text-xs font-medium text-espresso dark:text-espresso-darktext hover:border-sage hover:bg-sage-light dark:hover:bg-sage-dark/20 hover:text-sage-dark transition-all shadow-sm">
-              <span class="text-sm">💬</span>
-              <span>LINE 聯繫</span>
-            </a>
-          </div>
-        </div>
-
-      </section>
-
-    </div>
-
-    <!-- Soft Dashed Line Divider -->
-    <div class="my-8 dashed-grid-divider h-0.5 w-full"></div>
-
-    <!-- Bottom Section: 4 Rounded Counter Boxes -->
-    <section>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-friendly uppercase tracking-widest text-espresso-soft dark:text-espresso-darkmuted font-semibold flex items-center gap-2">
-          <span id="ledgerTitle">📌 學術與經歷總覽</span>
-        </h2>
-        <span id="ledgerSubtitle" class="text-[11px] font-serif italic text-espresso-soft dark:text-espresso-darkmuted">中山大學教育研究所</span>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <!-- Box 1: Master's Student -->
-        <div class="bg-paper-100/70 dark:bg-paper-800/70 border border-paper-200 dark:border-[#38312a] rounded-2xl p-4 text-center hover:bg-white dark:hover:bg-paper-800 hover:border-terracotta transition-all duration-200 stamp-hover shadow-sm">
-          <div id="stat1Label" class="text-xs font-serif text-espresso-soft dark:text-espresso-darkmuted uppercase tracking-wider mb-1">學歷</div>
-          <div id="stat1Value" class="text-lg sm:text-xl font-friendly font-semibold text-espresso dark:text-espresso-darktext">碩士生</div>
-          <div id="stat1Subtext" class="text-[11px] text-terracotta font-medium mt-1">中山教育所</div>
-        </div>
-
-        <!-- Box 2: 7+ Years Experience -->
-        <div class="bg-sage-light/70 dark:bg-paper-800/70 border border-[#d6e5d6] dark:border-[#38312a] rounded-2xl p-4 text-center hover:bg-white dark:hover:bg-paper-800 hover:border-sage transition-all duration-200 stamp-hover-rev shadow-sm">
-          <div id="stat2Label" class="text-xs font-serif text-sage-dark dark:text-sage uppercase tracking-wider mb-1">教學經歷</div>
-          <div id="stat2Value" class="text-lg sm:text-xl font-friendly font-semibold text-espresso dark:text-espresso-darktext">7+ 年</div>
-          <div id="stat2Subtext" class="text-[11px] text-sage font-medium mt-1">英語與輔導經驗</div>
-        </div>
-
-        <!-- Box 3: Core Interests -->
-        <div class="bg-ochre-light/70 dark:bg-paper-800/70 border border-[#ebdccb] dark:border-[#38312a] rounded-2xl p-4 text-center hover:bg-white dark:hover:bg-paper-800 hover:border-ochre transition-all duration-200 stamp-hover shadow-sm">
-          <div id="stat3Label" class="text-xs font-serif text-ochre uppercase tracking-wider mb-1">研究核心</div>
-          <div id="stat3Value" class="text-base sm:text-lg font-friendly font-semibold text-espresso dark:text-espresso-darktext">學習 · 教技 · AI</div>
-          <div id="stat3Subtext" class="text-[11px] text-ochre font-medium mt-1">核心興趣</div>
-        </div>
-
-        <!-- Box 4: Curiosity -->
-        <div class="bg-terracotta-light/70 dark:bg-paper-800/70 border border-[#fadfd2] dark:border-[#38312a] rounded-2xl p-4 text-center hover:bg-white dark:hover:bg-paper-800 hover:border-terracotta transition-all duration-200 stamp-hover-rev shadow-sm">
-          <div id="stat4Label" class="text-xs font-serif text-terracotta-dark dark:text-terracotta-light uppercase tracking-wider mb-1">態度</div>
-          <div id="stat4Value" class="text-lg sm:text-xl font-friendly font-semibold text-terracotta">持續探索</div>
-          <div id="stat4Subtext" class="text-[11px] text-espresso-soft dark:text-espresso-darkmuted font-medium mt-1">好奇心與成長</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer Stationery Mark -->
-    <div class="mt-8 pt-4 border-t border-[#f3ebdf] dark:border-[#2a241e] flex flex-col sm:flex-row items-center justify-between text-[11px] text-espresso-soft dark:text-espresso-darkmuted font-serif">
-      <div class="flex items-center gap-2">
-        <span class="w-1.5 h-1.5 rounded-full bg-terracotta"></span>
-        <span>Ya-Lun Li (李亞倫) • Student Bio Card</span>
-      </div>
-      <div class="mt-2 sm:mt-0 font-friendly">
-        Press <kbd class="px-1.5 py-0.5 rounded bg-paper-200 dark:bg-paper-800 text-espresso dark:text-espresso-darktext text-[10px] font-mono">⌘ + D</kbd> to bookmark bio
       </div>
     </div>
+  );
+};
 
-  </main>
+// --- Update App Component (Integrating the new view) ---
 
-  <!-- Multi-Language & Theme Toggle Logic -->
-  <script>
-    // i18n Content Dictionary
-    const i18n = {
-      zh: {
-        langBtn: "EN",
-        subtitle: "中山大學教育研究所 • 畢業生檔案",
-        caption: '"學習、教學與研究"',
-        statusPill: "中山大學教育研究所碩士生",
-        location: "國立中山大學 (NSYSU)",
-        userName: '李亞倫 <span class="text-lg font-normal text-espresso-soft dark:text-espresso-darkmuted sm:ml-1">(Ya-Lun Li)</span>',
-        userTitle: "中山大學教育研究所碩士生 • Institute of Education, NSYSU",
-        userBio: "我是國立中山大學教育研究所的碩士生，具備英語教學、課程設計與學生輔導背景。我對學習科學、教育科技以及 AI 如何促進深層學習充滿興趣。希望結合教學與研究，串連理論與實務，打造更具互動性與成效的學習體驗。",
-        quoteText: "Keep learning, keep growing, and keep asking why.",
-        quoteAuthor: "— 個人座右銘與學習哲學",
-        quoteTopic: "🌿 教育科技與學習研究",
-        tagsHeader: "✦ 核心領域與研究專長",
-        socialHeader: "✦ 社群與聯絡管道",
-        socialEmailText: "Email 聯絡",
-        ledgerTitle: "📌 學術與經歷總覽",
-        ledgerSubtitle: "中山大學教育研究所",
-        stat1Label: "學歷",
-        stat1Value: "碩士生",
-        stat1Subtext: "中山教育所",
-        stat2Label: "教學經歷",
-        stat2Value: "7+ 年",
-        stat2Subtext: "英語與輔導經驗",
-        stat3Label: "研究核心",
-        stat3Value: "學習 · 教技 · AI",
-        stat3Subtext: "核心興趣",
-        stat4Label: "態度",
-        stat4Value: "持續探索",
-        stat4Subtext: "好奇心與成長"
-      },
-      en: {
-        langBtn: "中文",
-        subtitle: "Graduate Portfolio • NSYSU",
-        caption: '"Learning, Teaching & Researching"',
-        statusPill: "Master's Student @ NSYSU",
-        location: "National Sun Yat-sen University",
-        userName: 'Ya-Lun Li <span class="text-lg font-normal text-espresso-soft dark:text-espresso-darkmuted sm:ml-1">(李亞倫)</span>',
-        userTitle: "Master's Student in Education • NSYSU",
-        userBio: "I am a graduate student in Education at National Sun Yat-sen University, with a background in English teaching, curriculum design, and student guidance. I am interested in learning sciences, educational technology, and how AI can support meaningful learning. Through teaching and research, I hope to bridge theory and practice and create more engaging and effective learning experiences.",
-        quoteText: "Keep learning, keep growing, and keep asking why.",
-        quoteAuthor: "— Motto & Personal Philosophy",
-        quoteTopic: "🌿 EdTech & Learning Research",
-        tagsHeader: "✦ Core Fields & Specializations",
-        socialHeader: "✦ Connect & Social Channels",
-        socialEmailText: "Email Me",
-        ledgerTitle: "📌 Academic Ledger & Experience",
-        ledgerSubtitle: "NSYSU Graduate Ledger",
-        stat1Label: "Education",
-        stat1Value: "Master's Student",
-        stat1Subtext: "NSYSU Education",
-        stat2Label: "Teaching",
-        stat2Value: "7+ Years",
-        stat2Subtext: "Teaching Experience",
-        stat3Label: "Focus",
-        stat3Value: "Learning · EdTech · AI",
-        stat3Subtext: "Core Interests",
-        stat4Label: "Mindset",
-        stat4Value: "Always Exploring",
-        stat4Subtext: "Curiosity & Growth"
-      }
-    };
+export default function LearningJourneyApp() {
+  const [role, setRole] = useState<'teacher' | 'parent'>('parent'); // Default to parent for demo
+  const [activeTab, setActiveTab] = useState('Monthly Schedule');
 
-    let currentLang = 'zh';
+  const teacherNav = [
+    { label: 'Dashboard', icon: LayoutDashboard },
+    { label: 'Students', icon: Users },
+    { label: 'Schedule', icon: Calendar },
+    { label: 'Class Records', icon: BookOpen },
+    { label: 'Homework', icon: ClipboardList },
+    { label: 'Grades', icon: BarChart3 },
+    { label: 'Tuition', icon: BadgeDollarSign },
+  ];
 
-    function toggleLanguage() {
-      currentLang = currentLang === 'zh' ? 'en' : 'zh';
-      const data = i18n[currentLang];
+  const parentNav = [
+    { label: 'Dashboard', icon: LayoutDashboard },
+    { label: 'Monthly Schedule', icon: Calendar },
+    { label: 'Learning Progress', icon: TrendingUp },
+    { label: 'Homework', icon: ClipboardList },
+    { label: 'Teacher Feedback', icon: MessageSquare },
+    { label: 'Photos', icon: ImageIcon },
+  ];
 
-      document.getElementById('langBtnText').innerText = data.langBtn;
-      document.getElementById('headerSubtitle').innerText = data.subtitle;
-      document.getElementById('portraitCaption').innerText = data.caption;
-      document.getElementById('statusPillText').innerText = data.statusPill;
-      document.getElementById('locationText').innerText = data.location;
-      document.getElementById('userName').innerHTML = data.userName;
-      document.getElementById('userTitle').innerText = data.userTitle;
-      document.getElementById('userBio').innerText = data.userBio;
-      document.getElementById('quoteText').innerText = data.quoteText;
-      document.getElementById('quoteAuthor').innerText = data.quoteAuthor;
-      document.getElementById('quoteTopic').innerText = data.quoteTopic;
-      document.getElementById('tagsHeader').innerText = data.tagsHeader;
-      document.getElementById('socialHeader').innerText = data.socialHeader;
-      document.getElementById('socialEmailText').innerText = data.socialEmailText;
-      document.getElementById('ledgerTitle').innerText = data.ledgerTitle;
-      document.getElementById('ledgerSubtitle').innerText = data.ledgerSubtitle;
-      document.getElementById('stat1Label').innerText = data.stat1Label;
-      document.getElementById('stat1Value').innerText = data.stat1Value;
-      document.getElementById('stat1Subtext').innerText = data.stat1Subtext;
-      document.getElementById('stat2Label').innerText = data.stat2Label;
-      document.getElementById('stat2Value').innerText = data.stat2Value;
-      document.getElementById('stat2Subtext').innerText = data.stat2Subtext;
-      document.getElementById('stat3Label').innerText = data.stat3Label;
-      document.getElementById('stat3Value').innerText = data.stat3Value;
-      document.getElementById('stat3Subtext').innerText = data.stat3Subtext;
-      document.getElementById('stat4Label').innerText = data.stat4Label;
-      document.getElementById('stat4Value').innerText = data.stat4Value;
-      document.getElementById('stat4Subtext').innerText = data.stat4Subtext;
+  const navItems = role === 'teacher' ? teacherNav : parentNav;
+
+  // Render logic based on Tab
+  const renderContent = () => {
+    if (role === 'parent' && activeTab === 'Monthly Schedule') {
+      return <ParentScheduleView />;
     }
+    // ... (Keep other dashboard renders as in the previous code)
+    return <div className="text-slate-400 text-center py-20 italic">Module: {activeTab} coming soon...</div>;
+  };
 
-    function toggleTheme() {
-      const htmlEl = document.documentElement;
-      const themeIcon = document.getElementById('themeIcon');
-      
-      if (htmlEl.classList.contains('dark')) {
-        htmlEl.classList.remove('dark');
-        themeIcon.innerText = '🌙';
-        localStorage.setItem('theme', 'light');
-      } else {
-        htmlEl.classList.add('dark');
-        themeIcon.innerText = '☀️';
-        localStorage.setItem('theme', 'dark');
-      }
-    }
-
-    // Copy Email helper
-    function copyEmail() {
-      const email = 'ellen43030@gmail.com';
-      const indicator = document.getElementById('copyIndicator');
-      
-      navigator.clipboard.writeText(email).then(() => {
-        const originalText = indicator.innerText;
-        indicator.innerText = 'Copied! ✨';
-        indicator.classList.remove('bg-white/70', 'text-terracotta');
-        indicator.classList.add('bg-sage', 'text-white');
+  return (
+    <div className="min-h-screen bg-[#F9FAFB] flex font-sans text-slate-900 selection:bg-blue-100">
+      {/* Sidebar (Keep as is) */}
+      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col hidden lg:flex fixed h-full z-20">
+        <div className="p-8 flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-xl italic">
+            L
+          </div>
+          <span className="font-bold text-lg tracking-tight">Learning Journey</span>
+        </div>
         
-        setTimeout(() => {
-          indicator.innerText = originalText;
-          indicator.classList.remove('bg-sage', 'text-white');
-          indicator.classList.add('bg-white/70', 'text-terracotta');
-        }, 2200);
-      }).catch(() => {
-        window.prompt('Copy email:', email);
-      });
-    }
+        <nav className="flex-1 px-4 space-y-1">
+          {navItems.map((item) => (
+            <div 
+              key={item.label}
+              onClick={() => setActiveTab(item.label)}
+              className={`flex items-center space-x-3 px-4 py-2.5 cursor-pointer rounded-lg transition-all duration-200 ${
+                activeTab === item.label ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+              }`}
+            >
+              <item.icon size={18} strokeWidth={activeTab === item.label ? 2.5 : 2} />
+              <span className="text-sm">{item.label}</span>
+            </div>
+          ))}
+        </nav>
 
-    // Initialize Theme Preferences
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-      document.getElementById('themeIcon').innerText = '☀️';
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.getElementById('themeIcon').innerText = '🌙';
-    }
-  </script>
+        <div className="p-4 border-t border-slate-50">
+          <button 
+            onClick={() => {
+                const newRole = role === 'teacher' ? 'parent' : 'teacher';
+                setRole(newRole);
+                setActiveTab('Dashboard');
+            }}
+            className="w-full flex items-center justify-between px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-all"
+          >
+            <span>Switch to {role === 'teacher' ? 'Parent' : 'Teacher'}</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      </aside>
 
-</body></html>
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 min-h-screen">
+        <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 px-8 flex items-center justify-between">
+          <h2 className="font-semibold text-slate-800">{activeTab}</h2>
+          <div className="flex items-center space-x-4">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold border border-blue-200">AC</div>
+            <span className="text-sm font-medium text-slate-600">Aaron's Parent</span>
+          </div>
+        </header>
+
+        <div className="p-8 max-w-6xl mx-auto">
+          {renderContent()}
+        </div>
+      </main>
+    </div>
+  );
+}
