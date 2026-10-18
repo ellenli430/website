@@ -388,3 +388,184 @@
                 advice: "每天建議聽 10 分鐘英文廣播。",
                 nextClass: "週四 17:00",
                 avatarSeed: "Felix",
+                feedbackUpdated: "待更新"
+            }
+        ];
+
+        let currentTab = 'parent';
+        let mainChart = null;
+
+        // --- 初始化 ---
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+            initChart();
+            renderAdminTable();
+            
+            // 模擬載入動畫
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }
+            }, 800);
+        });
+
+        // --- 初始化圖表 ---
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['測驗 1', '測驗 2', '測驗 3', '測驗 4', '最近一次'],
+                    datasets: [{
+                        label: '分數',
+                        data: students[0].scores,
+                        borderColor: '#eab308',
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 50, max: 100, grid: { color: 'rgba(200,200,200,0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- 深色模式切換 ---
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+            }
+        }
+
+        // --- 視圖切換 ---
+        function switchTab(tab) {
+            currentTab = tab;
+            const parentView = document.getElementById('view-parent');
+            const teacherView = document.getElementById('view-teacher');
+            const btnParent = document.getElementById('btn-parent');
+            const btnTeacher = document.getElementById('btn-teacher');
+            const title = document.getElementById('page-title');
+
+            if (tab === 'parent') {
+                parentView.classList.remove('hidden');
+                teacherView.classList.add('hidden');
+                btnParent.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-primary-600 bg-primary-50";
+                btnTeacher.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800";
+                title.innerText = "家長儀表板";
+                updateParentView();
+            } else {
+                parentView.classList.add('hidden');
+                teacherView.classList.remove('hidden');
+                btnTeacher.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-primary-600 bg-primary-50";
+                btnParent.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800";
+                title.innerText = "教師管理系統";
+                renderAdminTable();
+            }
+        }
+
+        // --- 家長介面更新 ---
+        function updateParentView() {
+            const s = students[0];
+            document.getElementById('p-name').innerText = s.name;
+            document.getElementById('p-class').innerText = `${s.grade} • ${s.class}`;
+            document.getElementById('p-teacher').innerText = s.teacher;
+            document.getElementById('p-next-class').innerText = s.nextClass;
+            document.getElementById('p-pros').innerText = s.pros;
+            document.getElementById('p-cons').innerText = s.cons;
+            document.getElementById('p-advice').innerText = s.advice;
+            document.getElementById('p-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.avatarSeed}`;
+            
+            const avg = (s.scores.reduce((a,b) => a+b, 0) / s.scores.length).toFixed(1);
+            document.getElementById('p-avg-score').innerText = avg;
+
+            if (mainChart) {
+                mainChart.data.datasets[0].data = s.scores;
+                mainChart.update();
+            }
+        }
+
+        // --- 教師介面渲染 ---
+        function renderAdminTable(data = students) {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = data.map(s => `
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all group">
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-3">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${s.avatarSeed}" class="w-8 h-8 rounded-full bg-slate-100">
+                            <span class="font-bold text-slate-700 dark:text-white">${s.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5 text-sm text-slate-500">${s.class}</td>
+                    <td class="px-8 py-5 font-black text-primary-600">${s.scores[s.scores.length-1]} <span class="text-[10px] text-slate-300 font-normal">分</span></td>
+                    <td class="px-8 py-5">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold ${s.feedbackUpdated === '已更新' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}">${s.feedbackUpdated}</span>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        <button onclick="openEditModal(${s.id})" class="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all text-slate-400 hover:text-primary-500 shadow-sm border border-transparent hover:border-slate-100">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- 搜尋功能 ---
+        function searchStudents() {
+            const term = document.getElementById('adminSearch').value.toLowerCase();
+            const filtered = students.filter(s => s.name.toLowerCase().includes(term));
+            renderAdminTable(filtered);
+        }
+
+        // --- Modal 操作 ---
+        let editingId = null;
+        function openEditModal(id) {
+            editingId = id;
+            const s = students.find(x => x.id === id);
+            document.getElementById('editScore').value = s.scores[s.scores.length-1];
+            document.getElementById('editPros').value = s.pros;
+            document.getElementById('editAdvice').value = s.advice;
+            document.getElementById('editAvatar').value = s.avatarSeed;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveData() {
+            const s = students.find(x => x.id === editingId);
+            s.scores[s.scores.length-1] = parseInt(document.getElementById('editScore').value);
+            s.pros = document.getElementById('editPros').value;
+            s.advice = document.getElementById('editAdvice').value;
+            s.avatarSeed = document.getElementById('editAvatar').value;
+            s.feedbackUpdated = "已更新";
+
+            closeModal();
+            renderAdminTable();
+            if(editingId === 1) updateParentView();
+            
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-xl text-xs font-bold z-50 animate-slide";
+            toast.innerText = "✨ 資料已成功儲存並同步！";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+    </script>
+</body>
+</html>
